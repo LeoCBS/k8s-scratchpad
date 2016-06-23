@@ -27,6 +27,20 @@ Get k8s cluster nodes:
 
     make nodes
 
+listing pods:
+
+    make pods
+
+deploy wordpress:
+
+    make deploy-wordpress
+
+delete one specific pod:
+
+    make delete-pod name=INPUT_NAME
+    make delete-pod name=wordpress
+
+
 ## Copyright
 
 Project for study propose based on this [project](https://github.com/NeowayLabs/kubernetes-coreos-vagrant)
