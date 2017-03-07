@@ -6,16 +6,11 @@ write-files:
     permissions: '0644'
     content: |
       OPTS_RPC_MOUNTD=""
-  - path: /opt/bin/wupiao
-    permissions: '0755'
+  - path: /etc/kube-env
+    permissions: 0644
+    owner: root
     content: |
-      #!/bin/bash
-      # [w]ait [u]ntil [p]ort [i]s [a]ctually [o]pen
-      [ -n "$1" ] && \
-        until curl -o /dev/null -sIf http://${1}; do \
-          sleep 1 && echo .;
-        done;
-      exit $?
+      KUBE_VERSION=1.5.3
 
 hostname: master
 coreos:
@@ -79,32 +74,20 @@ coreos:
         [Unit]
         Description=Kubernetes API Server
         Documentation=https://github.com/GoogleCloudPlatform/kubernetes
-        Requires=setup-network-environment.service etcd2.service generate-serviceaccount-key.service
-        After=setup-network-environment.service etcd2.service generate-serviceaccount-key.service
+        Requires=etcd2-waiter.service
+        After=etcd2-waiter.service
 
         [Service]
-        EnvironmentFile=/etc/network-environment
-        ExecStartPre=-/usr/bin/mkdir -p /opt/bin
-        ExecStartPre=/usr/bin/curl -L -o /opt/bin/kube-apiserver -z /opt/bin/kube-apiserver https://storage.googleapis.com/kubernetes-release/release/v1.0.1/bin/linux/amd64/kube-apiserver
-        ExecStartPre=/usr/bin/chmod +x /opt/bin/kube-apiserver
-        ExecStartPre=/opt/bin/wupiao 127.0.0.1:2379/v2/machines
-        ExecStart=/opt/bin/kube-apiserver \
-        --service_account_key_file=/opt/bin/kube-serviceaccount.key \
-        --service_account_lookup=false \
-        --admission_control=NamespaceLifecycle,NamespaceAutoProvision,LimitRanger,SecurityContextDeny,ServiceAccount,ResourceQuota \
-        --runtime_config=api/v1 \
-        --allow_privileged=true \
-        --insecure_bind_address=0.0.0.0 \
-        --insecure_port=8080 \
-        --kubelet_https=true \
-        --secure_port=6443 \
+        EnvironmentFile=/etc/kube-env
+        ExecStart=/usr/bin/rkt --insecure-options=image --net=host run quay.io/coreos/hyperkube:v${KUBE_VERSION}_coreos.0 \
+        --exec=/hyperkube -- apiserver \
+        --insecure-bind-address=0.0.0.0 \
         --service-cluster-ip-range=10.100.0.0/16 \
-        --etcd_servers=http://127.0.0.1:2379 \
-        --public_address_override=${DEFAULT_IPV4} \
-        --logtostderr=true
+        --etcd-servers=http://localhost:2379 \
+        --allow-privileged=true
         Restart=always
         RestartSec=10
-    - name: kube-controller-manager.service
+     - name: kube-controller-manager.service
       command: start
       content: |
         [Unit]
@@ -114,12 +97,10 @@ coreos:
         After=kube-apiserver.service
 
         [Service]
-        ExecStartPre=/usr/bin/curl -L -o /opt/bin/kube-controller-manager -z /opt/bin/kube-controller-manager https://storage.googleapis.com/kubernetes-release/release/v1.0.1/bin/linux/amd64/kube-controller-manager
-        ExecStartPre=/usr/bin/chmod +x /opt/bin/kube-controller-manager
-        ExecStart=/opt/bin/kube-controller-manager \
-        --service_account_private_key_file=/opt/bin/kube-serviceaccount.key \
-        --master=127.0.0.1:8080 \
-        --logtostderr=true
+        EnvironmentFile=/etc/kube-env
+        ExecStart=/usr/bin/rkt --insecure-options=image --net=host run quay.io/coreos/hyperkube:v${KUBE_VERSION}_coreos.0 \
+        --exec=/hyperkube -- controller-manager \
+        --master=127.0.0.1:8080
         Restart=always
         RestartSec=10
     - name: kube-scheduler.service
@@ -132,9 +113,10 @@ coreos:
         After=kube-apiserver.service
 
         [Service]
-        ExecStartPre=/usr/bin/curl -L -o /opt/bin/kube-scheduler -z /opt/bin/kube-scheduler https://storage.googleapis.com/kubernetes-release/release/v1.0.1/bin/linux/amd64/kube-scheduler
-        ExecStartPre=/usr/bin/chmod +x /opt/bin/kube-scheduler
-        ExecStart=/opt/bin/kube-scheduler --master=127.0.0.1:8080
+        EnvironmentFile=/etc/kube-env
+        ExecStart=/usr/bin/rkt --insecure-options=image --net=host run quay.io/coreos/hyperkube:v${KUBE_VERSION}_coreos.0 \
+        --exec=/hyperkube -- scheduler \
+        --master=127.0.0.1:8080
         Restart=always
         RestartSec=10
   update:

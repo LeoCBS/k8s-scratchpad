@@ -9,6 +9,12 @@ write-files:
         --silent --head --fail \
         http://${1}:${2}; do sleep 1 && echo -n .; done;
       exit $?
+  - path: /etc/kube-env
+    permissions: 0644
+    owner: root
+    content: |
+      MASTER_IP=192.168.20.10
+      KUBE_VERSION=1.5.3
 
 coreos:
   etcd2:
@@ -50,51 +56,65 @@ coreos:
         ExecStart=/opt/bin/setup-network-environment
         RemainAfterExit=yes
         Type=oneshot
+    - name: kubelet.service
+      command: start
+      content: |
+        [Unit]
+        Description=Kubernetes Kubelet
+        Documentation=https://github.com/GoogleCloudPlatform/kubernetes
+        Requires=network-online.target
+        After=network-online.target
+
+        [Service]
+        EnvironmentFile=/etc/kube-env
+        # wait for kubernetes master to be up and ready
+        #rkt-fly Magic from kubelet-wrapper: https://github.com/coreos/coreos-kubernetes/issues/287
+        ExecStartPre=/opt/bin/wupiao ${MASTER_IP} 8080
+        ExecStart=/usr/bin/rkt --insecure-options=image --net=host run \
+        --volume etc-ssl-certs,kind=host,source=/usr/share/ca-certificates \
+        --volume var-lib-docker,kind=host,source=/var/lib/docker \
+        --volume var-lib-kubelet,kind=host,source=/var/lib/kubelet \
+        --volume os-release,kind=host,source=/usr/lib/os-release \
+        --volume run,kind=host,source=/run \
+        --mount volume=etc-ssl-certs,target=/etc/ssl/certs \
+        --mount volume=var-lib-docker,target=/var/lib/docker \
+        --mount volume=var-lib-kubelet,target=/var/lib/kubelet \
+        --mount volume=os-release,target=/etc/os-release \
+        --mount volume=run,target=/run \
+        --stage1-from-dir=stage1-fly.aci \
+        quay.io/coreos/hyperkube:v${KUBE_VERSION}_coreos.0 \
+        --exec=/hyperkube -- kubelet \
+        --api-servers=${MASTER_IP}:8080 \
+        --image-gc-high-threshold=60% \
+        --image-gc-low-threshold=30% \
+        --system-reserved="memory=500m" \
+        --low-diskspace-threshold-mb=1024 \
+        --kube-reserved="memory=500m" \
+        --eviction-hard="memory.available<500Mi" \
+        --maximum-dead-containers=1 \
+        --allow-privileged=true \
+        --hostname-override=$private_ipv4
+        Restart=always
+        RestartSec=10
     - name: kube-proxy.service
       command: start
       content: |
         [Unit]
         Description=Kubernetes Proxy
         Documentation=https://github.com/GoogleCloudPlatform/kubernetes
-        Requires=setup-network-environment.service
-        After=setup-network-environment.service
+        Requires=network-online.target
+        After=network-online.target
 
         [Service]
-        ExecStartPre=/usr/bin/curl -L -o /opt/bin/kube-proxy -z /opt/bin/kube-proxy https://storage.googleapis.com/kubernetes-release/release/v1.0.1/bin/linux/amd64/kube-proxy
-        ExecStartPre=/usr/bin/chmod +x /opt/bin/kube-proxy
+        EnvironmentFile=/etc/kube-env
         # wait for kubernetes master to be up and ready
-        ExecStartPre=/opt/bin/wupiao 192.168.20.10 8080
-        ExecStart=/opt/bin/kube-proxy \
-        --master=192.168.20.10:8080 \
-        --logtostderr=true
-        Restart=always
-        RestartSec=10
-    - name: kube-kubelet.service
-      command: start
-      content: |
-        [Unit]
-        Description=Kubernetes Kubelet
-        Documentation=https://github.com/GoogleCloudPlatform/kubernetes
-        Requires=setup-network-environment.service
-        After=setup-network-environment.service
-
-        [Service]
-        EnvironmentFile=/etc/network-environment
-        EnvironmentFile=/etc/environment
-        ExecStartPre=/usr/bin/curl -L -o /opt/bin/kubelet -z /opt/bin/kubelet https://storage.googleapis.com/kubernetes-release/release/v1.0.1/bin/linux/amd64/kubelet
-        ExecStartPre=/usr/bin/chmod +x /opt/bin/kubelet
-        # wait for kubernetes master to be up and ready
-        ExecStartPre=/opt/bin/wupiao 192.168.20.10 8080
-        ExecStart=/opt/bin/kubelet \
-        --address=0.0.0.0 \
-        --port=10250 \
-        --hostname_override=${COREOS_PRIVATE_IPV4} \
-        --api_servers=192.168.20.10:8080 \
-        --allow_privileged=true \
-        --logtostderr=true \
-        --cadvisor_port=4194 \
-        --healthz_bind_address=0.0.0.0 \
-        --healthz_port=10248
+        #rkt-fly Magic from kubelet-wrapper: https://github.com/coreos/coreos-kubernetes/issues/287
+        ExecStartPre=/opt/bin/wupiao ${MASTER_IP} 8080
+        ExecStart=/usr/bin/rkt --insecure-options=image --net=host run \
+        --stage1-from-dir=stage1-fly.aci \
+        quay.io/coreos/hyperkube:v${KUBE_VERSION}_coreos.0 \
+        --exec=/hyperkube -- proxy \
+        --master=http://${MASTER_IP}:8080
         Restart=always
         RestartSec=10
   update:
