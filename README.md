@@ -1,6 +1,15 @@
 # k8s-scratchpad
 k8s cluster running in coreos vagrant
 
+* Kubernetes version = 1.5.2
+* CoreOS version = stable
+
+
+## Requeriments
+
+* Vagrant
+* VirtualBox
+
 ## Makefile targets
 
 Start vagrant machines:
