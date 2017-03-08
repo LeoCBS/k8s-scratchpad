@@ -9,6 +9,7 @@ k8s cluster running in coreos vagrant
 
 * Vagrant
 * VirtualBox
+* Kubectl
 
 ## Makefile targets
 
