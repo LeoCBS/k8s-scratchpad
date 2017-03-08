@@ -87,7 +87,7 @@ coreos:
         --allow-privileged=true
         Restart=always
         RestartSec=10
-     - name: kube-controller-manager.service
+    - name: kube-controller-manager.service
       command: start
       content: |
         [Unit]
