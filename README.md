@@ -11,6 +11,12 @@ k8s cluster running in coreos vagrant
 * VirtualBox
 * Kubectl
 
+
+## Kubernetes overview
+
+![alt text][k8s-overview]
+
+
 ## Makefile targets
 
 Start vagrant machines:
@@ -40,3 +46,5 @@ Get k8s cluster nodes:
 ## Copyright
 
 Project for study propose based on this [project](https://github.com/NeowayLabs/kubernetes-coreos-vagrant)
+
+[k8s-overview]: kubernetes_overview.png
