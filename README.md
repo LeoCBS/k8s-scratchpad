@@ -4,6 +4,13 @@ k8s cluster running in coreos vagrant
 * Kubernetes version = 1.5.2
 * CoreOS version = stable
 
+This project use rkt to start units in coreOS VMs
+Services running in master:
+
+ * Kubernetes API Server
+ * Kubernetes Controller Manager
+ * Kubernetes Scheduler
+
 
 ## Requeriments
 
@@ -31,7 +38,7 @@ Destroy VMs:
 
     make destroy
 
-Access machine by SSH:
+Access machine by SSH to debug:
 
     make ssh name=master
 
