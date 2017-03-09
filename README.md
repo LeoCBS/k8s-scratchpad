@@ -4,12 +4,18 @@ k8s cluster running in coreos vagrant
 * Kubernetes version = 1.5.2
 * CoreOS version = stable
 
-This project use rkt to start units in coreOS VMs
-Services running in master:
+This project use rkt to start units in coreOS VMs.
+
+Kubernetes services running in master:
 
  * Kubernetes API Server
  * Kubernetes Controller Manager
  * Kubernetes Scheduler
+
+Kubernetes services running in node:
+
+ * Kubernetes Kubelet
+ * Kubernetes Proxy
 
 
 ## Requeriments
