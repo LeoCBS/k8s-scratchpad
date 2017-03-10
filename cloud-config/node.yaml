@@ -29,7 +29,6 @@ coreos:
     proxy: on
   flannel:
     etcd_endpoints: http://localhost:2379
-    interface: $public_ipv4
   fleet:
     etcd_servers: http://localhost:2379
     metadata: k8srole=node

@@ -1,7 +1,7 @@
 # -*- mode: ruby -*-
 # vi: set ft=ruby :
 
-BASE_IP_ADDR="192.168.20"
+BASE_IP_ADDR="172.16.0"
 MASTER_IP="#{BASE_IP_ADDR}.10"
 
 VAGRANTFILE_API_VERSION = "2"
