@@ -1,6 +1,35 @@
 # k8s-scratchpad
 k8s cluster running in coreos vagrant
 
+* Kubernetes version = 1.5.2
+* CoreOS version = stable
+
+This project use rkt to start units in coreOS VMs.
+
+Kubernetes services running in master:
+
+ * Kubernetes API Server
+ * Kubernetes Controller Manager
+ * Kubernetes Scheduler
+
+Kubernetes services running in node:
+
+ * Kubernetes Kubelet
+ * Kubernetes Proxy
+
+
+## Requeriments
+
+* Vagrant
+* VirtualBox
+* Kubectl
+
+
+## Kubernetes overview
+
+![alt text][k8s-overview]
+
+
 ## Makefile targets
 
 Start vagrant machines:
@@ -15,7 +44,7 @@ Destroy VMs:
 
     make destroy
 
-Access machine by SSH:
+Access machine by SSH to debug:
 
     make ssh name=master
 
@@ -30,3 +59,5 @@ Get k8s cluster nodes:
 ## Copyright
 
 Project for study propose based on this [project](https://github.com/NeowayLabs/kubernetes-coreos-vagrant)
+
+[k8s-overview]: kubernetes_overview.png
