@@ -16,7 +16,7 @@ write-files:
     permissions: 0644
     owner: root
     content: |
-      KUBE_VERSION=1.4.5
+      KUBE_VERSION=1.7.5
 
 hostname: master
 coreos:
@@ -101,7 +101,7 @@ coreos:
 
         [Service]
         EnvironmentFile=/etc/kube-env
-        ExecStart=/usr/bin/rkt --insecure-options=image --net=host run quay.io/coreos/hyperkube:v1.4.5_coreos.0 \
+        ExecStart=/usr/bin/rkt --insecure-options=image --net=host run quay.io/coreos/hyperkube:v1.7.5_coreos.0 \
         --exec=/hyperkube -- apiserver \
         --insecure-bind-address=0.0.0.0 \
         --service-cluster-ip-range=10.100.0.0/16 \
@@ -120,7 +120,7 @@ coreos:
 
         [Service]
         EnvironmentFile=/etc/kube-env
-        ExecStart=/usr/bin/rkt --insecure-options=image --net=host run quay.io/coreos/hyperkube:v1.4.5_coreos.0 \
+        ExecStart=/usr/bin/rkt --insecure-options=image --net=host run quay.io/coreos/hyperkube:v1.7.5_coreos.0 \
         --exec=/hyperkube -- controller-manager \
         --master=127.0.0.1:8080
         Restart=always
@@ -136,7 +136,7 @@ coreos:
 
         [Service]
         EnvironmentFile=/etc/kube-env
-        ExecStart=/usr/bin/rkt --insecure-options=image --net=host run quay.io/coreos/hyperkube:v1.4.5_coreos.0 \
+        ExecStart=/usr/bin/rkt --insecure-options=image --net=host run quay.io/coreos/hyperkube:v1.7.5_coreos.0 \
         --exec=/hyperkube -- scheduler \
         --master=127.0.0.1:8080
         Restart=always
