@@ -18,14 +18,14 @@ write-files:
     permissions: 0644
     owner: root
     content: |
-      MASTER_IP=192.168.56.101
-      KUBE_VERSION=1.4.5
+      MASTER_IP=172.16.0.10
+      KUBE_VERSION=1.7.5
 
 coreos:
   etcd2:
     listen-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
     advertise-client-urls: http://0.0.0.0:2379,http://0.0.0.0:4001
-    initial-cluster: master=http://192.168.56.101:2380
+    initial-cluster: master=http://172.16.0.10:2380
     proxy: on
   flannel:
     etcd_endpoints: http://localhost:2379
@@ -78,7 +78,7 @@ coreos:
         EnvironmentFile=/etc/kube-env
         # wait for kubernetes master to be up and ready
         #rkt-fly Magic from kubelet-wrapper: https://github.com/coreos/coreos-kubernetes/issues/287
-        ExecStartPre=/opt/bin/wupiao ${MASTER_IP} 8080
+        ExecStartPre=/opt/bin/wupiao 172.16.0.10 8080
         ExecStart=/usr/bin/rkt --insecure-options=image --net=host run \
         --volume etc-ssl-certs,kind=host,source=/usr/share/ca-certificates \
         --volume var-lib-docker,kind=host,source=/var/lib/docker \
@@ -91,9 +91,9 @@ coreos:
         --mount volume=os-release,target=/etc/os-release \
         --mount volume=run,target=/run \
         --stage1-from-dir=stage1-fly.aci \
-        quay.io/coreos/hyperkube:v${KUBE_VERSION}_coreos.0 \
+        quay.io/coreos/hyperkube:v1.7.5_coreos.0 \
         --exec=/hyperkube -- kubelet \
-        --api-servers=${MASTER_IP}:8080 \
+        --api-servers=172.16.0.10:8080 \
         --image-gc-high-threshold=60% \
         --image-gc-low-threshold=30% \
         --system-reserved="memory=500m" \
@@ -118,12 +118,12 @@ coreos:
         EnvironmentFile=/etc/kube-env
         # wait for kubernetes master to be up and ready
         #rkt-fly Magic from kubelet-wrapper: https://github.com/coreos/coreos-kubernetes/issues/287
-        ExecStartPre=/opt/bin/wupiao ${MASTER_IP} 8080
+        ExecStartPre=/opt/bin/wupiao 172.16.0.10 8080
         ExecStart=/usr/bin/rkt --insecure-options=image --net=host run \
         --stage1-from-dir=stage1-fly.aci \
-        quay.io/coreos/hyperkube:v${KUBE_VERSION}_coreos.0 \
+        quay.io/coreos/hyperkube:v1.7.5_coreos.0 \
         --exec=/hyperkube -- proxy \
-        --master=http://${MASTER_IP}:8080
+        --master=http://172.16.0.10:8080
         Restart=always
         RestartSec=10
   update:
