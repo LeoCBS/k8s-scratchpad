@@ -17,4 +17,4 @@ status:
 
 nodes:
 	@echo "getting nodes, please waiting"
-	kubectl -s http://192.168.20.10:8080 get nodes
+	kubectl -s http://172.16.0.10:8080 get nodes
